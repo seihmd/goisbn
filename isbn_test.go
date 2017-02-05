@@ -1,4 +1,4 @@
-package isbn
+package goisbn
 
 import (
 	"io/ioutil"
@@ -66,6 +66,13 @@ func TestIsISBN10(t *testing.T) {
 	}
 }
 
+func BenchmarkIsISBN10(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		IsISBN10("157965620X")
+		IsISBN10("960425059X")
+	}
+}
+
 func TestIsISBN13(t *testing.T) {
 	validISBNs := readFile(testfileISBN13Valid)
 	for _, isbn := range validISBNs {
@@ -84,11 +91,11 @@ func TestIsISBN13(t *testing.T) {
 	}
 }
 
-func readFile(filename string) []string {
-	file, _ := ioutil.ReadFile(filename)
-	contents := string(file)
-	ISBNs := strings.Split(string(contents), "\n")
-	return ISBNs
+func BenchmarkIsISBN13(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		IsISBN13("9789992158104")
+		IsISBN13("9789992158103")
+	}
 }
 
 func TestFormatISBN10(t *testing.T) {
@@ -105,4 +112,38 @@ func TestFormatISBN13(t *testing.T) {
 	if formatted != "978-9-99-215810-4" {
 		t.Fatal("wrong format as isbn13: " + formatted)
 	}
+}
+
+func TestExtract(t *testing.T) {
+	tests := map[string]string{
+		"http://www.shoeisha.co.jp/book/detail/9784798126708": "9784798126708",
+		"http://www.oreilly.co.jp/books/9784873117362/":       "9784873117362",
+		"http://shop.oreilly.com/product/0636920047124.do":    "0636920047124",
+		"http://gihyo.jp/book/2016/9784774185798":             "9784774185798",
+		"http://gihyo.jp/book/2006/4774129453":                "4774129453",
+		"http://book.impress.co.jp/books/1115101122":          "",
+	}
+
+	for test, expect := range tests {
+		s, _ := Extract(test)
+		if s != expect {
+			t.Fatal("failed extract isbn: " + expect + " but " + s)
+		}
+	}
+}
+
+func BenchmarkExtract(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		Extract("http://example.com/9784798126708")
+		Extract("http://example.com/9784798126708/abc")
+		Extract("http://example.com/097522980X")
+		Extract("http://example.com/097522980X/abc")
+	}
+}
+
+func readFile(filename string) []string {
+	file, _ := ioutil.ReadFile(filename)
+	contents := string(file)
+	ISBNs := strings.Split(string(contents), "\n")
+	return ISBNs
 }
