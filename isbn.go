@@ -1,5 +1,5 @@
-// Package isbn contains utility funcs for handling isbn code.
-package isbn
+// Package goisbn contains utility funcs for handling isbn code.
+package goisbn
 
 import (
 	"errors"
@@ -12,9 +12,12 @@ import (
 const (
 	isbn10Length  = 10
 	isbn13Length  = 13
-	isbn10Pattern = "^[0-9]{9}[0-9xX]$"
+	isbn10Pattern = "[0-9]{9}[0-9xX]"
 	isbn13Pattern = "[0-9]{13}"
 )
+
+var regISBN10 = regexp.MustCompile(isbn10Pattern)
+var regISBN13 = regexp.MustCompile(isbn13Pattern)
 
 // IsISBN validates code as ISBN
 func IsISBN(code string) bool {
@@ -33,10 +36,8 @@ func IsISBN(code string) bool {
 
 // IsISBN10 validates code as ISBN10
 func IsISBN10(code string) bool {
+	code = removeHyphen(code)
 	if len(code) != isbn10Length {
-		return false
-	}
-	if matched, _ := regexp.MatchString(isbn10Pattern, code); !matched {
 		return false
 	}
 	var sum int
@@ -55,10 +56,8 @@ func IsISBN10(code string) bool {
 
 // IsISBN13 validates code as ISBN13
 func IsISBN13(code string) bool {
+	code = removeHyphen(code)
 	if len(code) != isbn13Length {
-		return false
-	}
-	if matched, _ := regexp.MatchString(isbn13Pattern, code); !matched {
 		return false
 	}
 	var sum int
@@ -96,6 +95,7 @@ func Conv10To13(isbn string) (string, error) {
 	if !IsISBN10(isbn) {
 		return "", errors.New(isbn + "IS NOT ISBN10")
 	}
+	// NOTE: isbn13 has 979 prefix has no isbn10 code
 	baseString := "978" + isbn[0:9]
 	var sum int
 	for i, r := range baseString {
@@ -132,4 +132,23 @@ func Conv13To10(isbn string) (string, error) {
 		checkdigit = "0"
 	}
 	return baseString + checkdigit, nil
+}
+
+// Extract extracts valid isbn code from string (ex. url)
+func Extract(s string) (string, error) {
+	match := regISBN13.FindStringSubmatch(s)
+	if len(match) == 0 {
+		match = regISBN10.FindStringSubmatch(s) //strings.ToLower(s))
+		if len(match) == 0 {
+			return "", errors.New("ISBN not found: " + s)
+		}
+	}
+	if !IsISBN(match[0]) {
+		return "", errors.New("ISBN not found: " + s)
+	}
+	return match[0], nil
+}
+
+func removeHyphen(s string) string {
+	return strings.Replace(s, "-", "", -1)
 }
