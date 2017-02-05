@@ -19,7 +19,7 @@ const (
 var regISBN10 = regexp.MustCompile(isbn10Pattern)
 var regISBN13 = regexp.MustCompile(isbn13Pattern)
 
-// IsISBN validates code as ISBN
+// IsISBN validates code as ISBN. accepts hyphenated or not
 func IsISBN(code string) bool {
 	switch len(code) {
 	case isbn10Length:
@@ -34,7 +34,7 @@ func IsISBN(code string) bool {
 	return false
 }
 
-// IsISBN10 validates code as ISBN10
+// IsISBN10 validates code as ISBN10. accepts hyphenated or not
 func IsISBN10(code string) bool {
 	code = removeHyphen(code)
 	if len(code) != isbn10Length {
@@ -54,7 +54,7 @@ func IsISBN10(code string) bool {
 	return sum%11 == 0
 }
 
-// IsISBN13 validates code as ISBN13
+// IsISBN13 validates code as ISBN13. accepts hyphenated or not
 func IsISBN13(code string) bool {
 	code = removeHyphen(code)
 	if len(code) != isbn13Length {
@@ -72,7 +72,9 @@ func IsISBN13(code string) bool {
 	return sum%10 == 0
 }
 
-// FormatISBN hyphenates code as ISBN10 or 13
+// FormatISBN hyphenates code as ISBN10 or 13.
+// ISBN10: 1234567890 -> 1-23-456789-0
+// ISBN13: 9781234567890 -> 978-1-23-456789-0
 func FormatISBN(code string) (string, error) {
 	if len(code) == 10 {
 		return formatISBN10(code), nil
@@ -90,12 +92,12 @@ func formatISBN13(isbn13 string) string {
 	return fmt.Sprintf("%s-%s-%s-%s-%s", string(isbn13[0:3]), string(isbn13[3]), string(isbn13[4:6]), string(isbn13[6:12]), string(isbn13[12]))
 }
 
-// Conv10To13 convert ISBN10 code to ISBN13
+// Conv10To13 convert ISBN10 code to ISBN13.
 func Conv10To13(isbn string) (string, error) {
 	if !IsISBN10(isbn) {
 		return "", errors.New(isbn + "IS NOT ISBN10")
 	}
-	// NOTE: isbn13 has 979 prefix has no isbn10 code
+	// NOTE: isbn13 has 979 prefix has no isbn10 code.
 	baseString := "978" + isbn[0:9]
 	var sum int
 	for i, r := range baseString {
@@ -113,7 +115,8 @@ func Conv10To13(isbn string) (string, error) {
 	return baseString + strconv.Itoa(checkdigit), nil
 }
 
-// Conv13To10 convert ISBN13 code to ISBN10
+// Conv13To10 convert ISBN13 code to ISBN10.
+// NOTE: having prefix 979 does not have ISBN10, but can be converted into numerically correct one.
 func Conv13To10(isbn string) (string, error) {
 	if !IsISBN13(isbn) {
 		return "", errors.New(isbn + "IS NOT ISBN13")
