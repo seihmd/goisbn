@@ -114,6 +114,43 @@ func TestFormatISBN13(t *testing.T) {
 	}
 }
 
+func TestConv13To10(t *testing.T) {
+	tests := map[string]string{
+		"9789992158104": "9992158107",
+		"9789971502102": "9971502100",
+		"9789604250592": "9604250590",
+		"9788090273412": "8090273416",
+		"9788535902778": "8535902775",
+		"9781843560289": "1843560283",
+		"9790205006129": "0205006124",
+		"9790205007744": "0205007740",
+		"9795000000228": "5000000226",
+	}
+	for test, expect := range tests {
+		isbn10, _ := Conv13To10(test)
+		if isbn10 != expect {
+			t.Fatal("failed convert isbn10: expect" + expect + " but " + isbn10)
+		}
+	}
+}
+
+func TestConv10To13(t *testing.T) {
+	tests := map[string]string{
+		"9992158107": "9789992158104",
+		"9971502100": "9789971502102",
+		"9604250590": "9789604250592",
+		"8090273416": "9788090273412",
+		"8535902775": "9788535902778",
+		"1843560283": "9781843560289",
+	}
+	for test, expect := range tests {
+		isbn13, _ := Conv10To13(test)
+		if isbn13 != expect {
+			t.Fatal("failed convert isbn13: expect " + expect + " but " + isbn13)
+		}
+	}
+}
+
 func TestExtract(t *testing.T) {
 	tests := map[string]string{
 		"http://www.shoeisha.co.jp/book/detail/9784798126708": "9784798126708",
