@@ -138,11 +138,7 @@ func Conv13To10(isbn string) (string, error) {
 func Extract(s string) (string, error) {
 	match := regISBN13.FindStringSubmatch(s)
 	if len(match) == 0 {
-<<<<<<< HEAD
 		match = regISBN10.FindStringSubmatch(s)
-=======
-		match = regISBN10.FindStringSubmatch(s) //strings.ToLower(s))
->>>>>>> 260730b2d770c0809240ea226e0777f1aee93932
 		if len(match) == 0 {
 			return "", errors.New("ISBN not found: " + s)
 		}
